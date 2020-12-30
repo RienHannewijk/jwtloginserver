@@ -2,8 +2,10 @@ package com.rhannewijk.jwtloginserver.controller;
 
 import com.rhannewijk.jwtloginserver.authentication.utility.AuthUtil;
 import com.rhannewijk.jwtloginserver.controller.assembler.UserModelAssembler;
+import com.rhannewijk.jwtloginserver.dto.UserDto;
 import com.rhannewijk.jwtloginserver.logic.UserLogic;
 import com.rhannewijk.jwtloginserver.model.User;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.stereotype.Controller;
@@ -18,31 +20,29 @@ public class UserController {
     @Autowired
     private UserModelAssembler assembler;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     @GetMapping("/user")
     @ResponseBody
-    public EntityModel<User> getLoggedInUser() {
-        User user = logic.getUserByName(AuthUtil.getCurrentUsername());
+    public EntityModel<UserDto> getLoggedInUser() {
+        UserDto user = convertToDto(logic.getUserByName(AuthUtil.getCurrentUsername()));
+        System.out.println(user.getId());
         return assembler.toModel(user);
     }
 
     @GetMapping("/user/{id}")
     @ResponseBody
-    public EntityModel<User> getUser(@PathVariable int id) {
-        User user = logic.getUser(id);
+    public EntityModel<UserDto> getUser(@PathVariable int id) {
+        UserDto user = convertToDto(logic.getUser(id));
         return assembler.toModel(user);
     }
 
     @GetMapping("/user/name/{name}")
     @ResponseBody
-    public EntityModel<User> getUserByName(@PathVariable String name) {
-        User user = logic.getUserByName(name);
+    public EntityModel<UserDto> getUserByName(@PathVariable String name) {
+        UserDto user = convertToDto(logic.getUserByName(name));
         return assembler.toModel(user);
-    }
-
-    @PutMapping("/user")
-    @ResponseBody
-    public User putUser(@RequestBody User user) {
-        return logic.updateUser(user);
     }
 
     @DeleteMapping("/user/{id}")
@@ -50,4 +50,7 @@ public class UserController {
         logic.deleteUser(id);
     }
 
+    private UserDto convertToDto(User user) {
+        return modelMapper.map(user, UserDto.class);
+    }
 }

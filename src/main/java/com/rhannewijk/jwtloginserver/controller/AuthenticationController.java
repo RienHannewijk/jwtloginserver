@@ -4,7 +4,9 @@ import com.rhannewijk.jwtloginserver.authentication.JwtRequest;
 import com.rhannewijk.jwtloginserver.authentication.JwtResponse;
 import com.rhannewijk.jwtloginserver.authentication.JwtUserDetailsService;
 import com.rhannewijk.jwtloginserver.authentication.utility.JwtTokenUtil;
+import com.rhannewijk.jwtloginserver.dto.UserDto;
 import com.rhannewijk.jwtloginserver.model.User;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,10 +26,15 @@ public class AuthenticationController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
     @Autowired
     private JwtUserDetailsService jwtUserDetailsService;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
@@ -39,8 +46,8 @@ public class AuthenticationController {
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public ResponseEntity<?> saveUser(@RequestBody User user) throws Exception {
-        return ResponseEntity.ok(jwtUserDetailsService.save(user));
+    public ResponseEntity<?> saveUser(@RequestBody UserDto user) throws Exception {
+        return ResponseEntity.ok(jwtUserDetailsService.save(convertToEntity(user)));
     }
 
     private void authenticate(String username, String password) throws Exception {
@@ -51,5 +58,9 @@ public class AuthenticationController {
         } catch (BadCredentialsException e) {
             throw new Exception("INVALID_CREDENTIALS", e);
         }
+    }
+
+    private User convertToEntity(UserDto userDto) {
+        return modelMapper.map(userDto, User.class);
     }
 }
